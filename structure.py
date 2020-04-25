@@ -1,110 +1,144 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
+import os
+import random
+
 import pygame
 
 
-class Sprite:
-
-	SPRITE_WIDTH = 32
-	SPRITE_HEIGHT = 32
+class Map:
 
 	NUMBER_OF_SPRITES_IN_WIDTH = 15
 	NUMBER_OF_SPRITES_IN_HEIGHT = 15
 
-	def __init__(self, position, type):
-		self.position = position
-		# self.width = SPRITE_WIDTH
-		# self.height = SPRITE_HEIGHT
-		self.type = type
+	def __init__(self):
+		self.structure = self._initialize_structure()
+		self.screen = self._initialize_screen()
+		self.walls = pygame.sprite.Group()
+		self.guardians = pygame.sprite.Group()
+		self.players = pygame.sprite.Group()
+		self.floors = pygame.sprite.Group()
+		self.objects = pygame.sprite.Group()
+		self.number_of_objects = 3
+
+	def _initialize_structure(self):
+
+		file = open('map.txt', 'r')
+		structure = file.read().split("\n")
+		for i in range(len(structure)):
+			structure[i] = structure[i].split(',')
+
+		return structure
+
+	def _initialize_screen(self):
+		screen = pygame.display.set_mode(
+			(self.NUMBER_OF_SPRITES_IN_WIDTH * Item.WIDTH, self.NUMBER_OF_SPRITES_IN_HEIGHT * Item.HEIGHT))
+		pygame.display.set_caption("Help Mac Gyver to get out !")
+
+		return screen
+
+	def initialize_sprites(self, screen):
+
+		for i in range(len(self.structure)):
+			for j in range(len(self.structure[i])):
+				if self.structure[i][j] == '1':
+					wall = Item(j, i, 'images/wall.png', self.walls)
+					wall.update(screen)
+				elif self.structure[i][j] == 'G':
+					guardian = Item(j, i, 'images/guardian.png', self.guardians)
+					guardian.update(screen)
+				elif self.structure[i][j] == 'P':
+					player = Player(j, i, 'images/mac_gyver.png', self.players)
+					player.update(screen)
+				else:
+					floor = Item(j, i, 'images/floor.png', self.floors)
+					floor.update(screen)
+
+		list_of_floor_sprites = self.floors.sprites()
+
+		for k in range(self.number_of_objects):
+			random_number = random.randrange(0, len(self.floors))
+			object = Object(list_of_floor_sprites[random_number].position.x_index,
+							list_of_floor_sprites[random_number].position.y_index,
+							self.list_of_images_paths()[k], self.floors)
+			self.floors.remove(list_of_floor_sprites[random_number])
+			object.update(screen)
+
+		return screen, player
+
+	def list_of_images_paths(self):
+		list_of_images_paths = []
+		for file_name in os.listdir('images/objects'):
+			if file_name.endswith('.png'):
+				list_of_images_paths.append('images/objects/' + file_name)
+
+		return list_of_images_paths
+
+
+class Image:
+
+	def __init__(self, path):
+		self.sprite_image = self.load_and_scale_image(path)
+
+	def load_and_scale_image(self, path):
+
+		new_image = pygame.image.load(path).convert_alpha()
+		new_image = pygame.transform.scale(new_image, (Item.WIDTH, Item.HEIGHT))
+
+		return new_image
 
 
 class Position:
 
 	def __init__(self, x, y):
-		self.x = x
-		self.y = y
+		self.x_index = x
+		self.y_index = y
+
+	def to_pixels(self, n):
+		return n * Item.WIDTH
 
 
-def initialize_screen():
+class Item(pygame.sprite.Sprite):
 
-	screen = pygame.display.set_mode((Sprite.NUMBER_OF_SPRITES_IN_WIDTH * Sprite.SPRITE_WIDTH, Sprite.NUMBER_OF_SPRITES_IN_HEIGHT * Sprite.SPRITE_HEIGHT))
+	WIDTH = 32
+	HEIGHT = 32
 
-	pygame.display.set_caption("Help Mac Gyver to get out !")
+	def __init__(self, x, y, path, *groups):
+		super().__init__(*groups)
+		self.position = Position(x, y)
+		self.image = Image(path)
 
-	return screen
-
-
-def initialize_structure():
-
-	list_of_all_sprites = []
-	list_of_all_walls = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 27, 30, 31, 32, 33, 35, 37, 38, 39, 40, 41, 42, 44, 45, 59, 60, 62, 63, 64, 65, 66, 68, 69, 70, 71, 72, 74, 75, 77, 81, 85, 89, 90, 92, 94, 96, 98, 100, 102, 103, 104, 105, 107, 109, 110, 111, 113, 115, 117, 119, 120, 122, 124, 128, 130, 132, 134, 135, 137, 141, 143, 145, 149, 150, 152, 153, 154, 155, 156, 158, 160, 162, 164, 165, 173, 177, 179, 180, 182, 183, 184, 186, 187, 188, 190, 191, 192, 194, 201, 207, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224]
-	guardian_index = 29
-	mac_gyver_start_index = 195
-
-	for i in range(Sprite.NUMBER_OF_SPRITES_IN_WIDTH * Sprite.NUMBER_OF_SPRITES_IN_HEIGHT):
-		position = Position(i % Sprite.NUMBER_OF_SPRITES_IN_WIDTH * Sprite.SPRITE_WIDTH, i // Sprite.NUMBER_OF_SPRITES_IN_WIDTH * Sprite.SPRITE_HEIGHT)
-		if i == guardian_index:
-			list_of_all_sprites.append(Sprite(position, "guardian"))
-		elif i in list_of_all_walls:
-			list_of_all_sprites.append(Sprite(position, "wall"))
-		elif i == mac_gyver_start_index:
-			list_of_all_sprites.append(Sprite(position, "mac_gyver"))
-		else:
-			list_of_all_sprites.append(Sprite(position, ""))
-
-	return list_of_all_sprites
+	def update(self, screen):
+		screen.blit(self.image.sprite_image, (self.position.to_pixels(self.position.x_index), self.position.to_pixels(self.position.y_index)))
+		pygame.display.update()
 
 
-def add_sprite_images(screen, list_of_all_sprites):
+class Player(Item):
 
-	# Wall image
-	wall = pygame.image.load('Wall.png').convert_alpha()
-	wall = pygame.transform.scale(wall, (Sprite.SPRITE_WIDTH, Sprite.SPRITE_HEIGHT))
-
-	# Guardian image
-	guardian = pygame.image.load('Guardian.png').convert_alpha()
-	guardian = pygame.transform.scale(guardian, (Sprite.SPRITE_WIDTH, Sprite.SPRITE_HEIGHT))
-
-	# MacGyver image
-	mac_gyver = pygame.image.load('MacGyver.png').convert_alpha()
-	mac_gyver = pygame.transform.scale(mac_gyver, (Sprite.SPRITE_WIDTH, Sprite.SPRITE_HEIGHT))
-
-	for sprite in list_of_all_sprites:
-		if sprite.type == "wall":
-			screen.blit(wall, (sprite.position.x, sprite.position.y))
-		elif sprite.type == "guardian":
-			screen.blit(guardian, (sprite.position.x, sprite.position.y))
-		elif sprite.type == "mac_gyver":
-			screen.blit(mac_gyver, (sprite.position.x, sprite.position.y))
-			mac_gyver_position = Position(sprite.position.x, sprite.position.y)
-			# à revoir. Définir la variable en global sur le module ?
-			mac_gyver_start_index = list_of_all_sprites.index(sprite)
-
-	return mac_gyver, mac_gyver_position, mac_gyver_start_index
+	def __init__(self, x, y, path, *groups):
+		super().__init__(x, y, path, *groups)
+		self.new_position = Position(0, 0)
+		self.objects_count = 0
+		self.velocity = Item.WIDTH
 
 
-def display_map():
-	pygame.init()
-	screen = initialize_screen()
-	list_of_all_sprites = initialize_structure()
-	mac_gyver, mac_gyver_position, mac_gyver_start_index = add_sprite_images(screen, list_of_all_sprites)
-	pygame.display.update()
-	# vérifier la fonction delay et son emplacement avec zestedesavoir
-	pygame.time.delay(100)
-	return screen, list_of_all_sprites, mac_gyver, mac_gyver_position, mac_gyver_start_index
+class Object(Item):
+
+	def __init__(self, x, y, path, *groups):
+		super().__init__(x, y, path, *groups)
+
+
+class Game:
+
+	def __init__(self):
+		self.map = Map()
+
+	def start(self):
+		screen, mac_gyver = self.map.initialize_sprites(self.map.screen)
 
 
 if __name__ == "__main__":
-	display_map()
-
-
-	# =====================================
-	# Vérification OVI - A EFFACER A LA FIN
-	# =====================================
-	# print("longueur de ma liste : ", len(list_of_all_sprites))
-	# for sprite in list_of_all_sprites:
-	# 	if list_of_all_sprites.index(sprite) < 200:
-	# 		print('[', list_of_all_sprites.index(sprite), ']', sprite.position.x, sprite.position.y, sprite.type, Sprite.SPRITE_WIDTH, Sprite.SPRITE_HEIGHT)
-			
-
+	game = Game()
+	game.start()
+	pygame.time.delay(3000)
