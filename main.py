@@ -3,7 +3,7 @@
 
 import pygame
 
-from structure import Game, Player
+from structure import Game
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
 				running = False
 			elif event.type == pygame.KEYDOWN:
 				if event.key in [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]:
-					mac_gyver.move(event.key, game.map, screen)
+					mac_gyver.move(event.key, game.map)
 
 	pygame.quit()
 
