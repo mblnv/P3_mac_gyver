@@ -3,232 +3,152 @@
 
 import os
 import random
+
 import pygame
 
+import game
+import items
 
-class Map:
-
-	NUMBER_OF_SPRITES_IN_WIDTH = 15
-	NUMBER_OF_SPRITES_IN_HEIGHT = 15
-
-	def __init__(self):
-		self.structure = []  # A list of lists which represents the structural grid of the sprites. Access through indexes.
-		self.screen = pygame.Surface
-
-		self.player = None
-		self.guardian = None
-		self.floor = None
-		self.wall = None
-
-		self.walls = set()
-		self.guardians = set()
-		self.players = set()
-		self.floors = set()
-		self.items = set()
-
-		self.number_of_objects = 3
-
-	def initialize_structure(self):
-
-		file = open('map.txt', 'r')
-		structure = file.read().split("\n")
-		for i in range(len(structure)):
-			structure[i] = structure[i].split(',')
-		self.structure = structure
-
-	def initialize_screen(self):
-		self.screen = pygame.display.set_mode(
-			(self.NUMBER_OF_SPRITES_IN_WIDTH * MapObject.WIDTH, self.NUMBER_OF_SPRITES_IN_HEIGHT * MapObject.HEIGHT))
-		pygame.display.set_caption("Help Mac Gyver to get out !")
-
-	def initialize_sprites(self):
-
-		self.player = Player(0, 0, 'images/mac_gyver.png')
-		self.guardian = MapObject(0, 0, 'images/guardian.png')
-		self.floor = MapObject(0, 0, 'images/floor.png')
-		self.wall = MapObject(0, 0, 'images/wall.png')
-
-		for i in range(len(self.structure)):
-			for j in range(len(self.structure[i])):
-				if self.structure[i][j] == '1':
-					# Add the image of the wall
-					self.wall.position.x_index = j
-					self.wall.position.y_index = i
-					self.wall.update(self.screen)
-					# Add the tuple of the index coordinates in the dedicated set
-					self.walls.add((j, i,))
-
-				elif self.structure[i][j] == 'G':
-					# Add the floor background for aesthetic purpose
-					self.floor.position.x_index = j
-					self.floor.position.y_index = i
-					self.floor.update(self.screen)
-					# Add the image of the guardian
-					self.guardian.position.x_index = j
-					self.guardian.position.y_index = i
-					self.guardian.update(self.screen)
-					# Add the tuple of the index coordinates in the dedicated set
-					self.guardians.add((j, i,))
-
-				elif self.structure[i][j] == 'P':
-					# Add the floor background for aesthetic purpose
-					self.floor.position.x_index = j
-					self.floor.position.y_index = i
-					self.floor.update(self.screen)
-					# Add the image of the player (Mac Gyver)
-					self.player.position.x_index = j
-					self.player.position.y_index = i
-					self.player.update(self.screen)
-					# Add the tuple of the index coordinates in the dedicated set
-					self.players.add((j, i,))
-
-				else:
-					# Add the image of the floor
-					self.floor.position.x_index = j
-					self.floor.position.y_index = i
-					self.floor.update(self.screen)
-					# Add the tuple of the index coordinates in the dedicated set
-					self.floors.add((j, i,))
-
-		print('Mac Gyver : ', self.players)
-		print('Guardian : ', self.guardians)
-		print('Objets : ', self.items)
-		print('walls : ', self.walls)
-		print('Floors : ', self.floors)
-
-		list_of_floors = list(self.floors)
-		for k in range(self.number_of_objects):
-			random_number = random.randint(0, len(list_of_floors) - 1)
-			x, y = list_of_floors[random_number][0], list_of_floors[random_number][1]
-			item = Item(x, y, self.list_of_images_paths()[k])
-			self.items.add((x, y))
-			self.floors.discard((x, y))
-			list_of_floors.pop(random_number)
-			item.update(self.screen)
-
-	def list_of_images_paths(self):
-		list_of_images_paths = []
-		for file_name in os.listdir('images/objects'):
-			if file_name.endswith('.png'):
-				list_of_images_paths.append('images/objects/' + file_name)
-
-		return list_of_images_paths
+""" This module creates the skeleton of the game and add visual elements on it.
+	The skeleton is a structure with a form of a grid in 2 dimensions.
+	This grid is materialized in a list of lists (map.structure).
+	On each cell of the grid (i.e. each sprite), an image is displayed. This image can be a player, a guardian, 
+	a wall, a floor or an item to pick-up.
+	This module allow multiple players, multiple guardians and multiple pick-up items.
+	By default, there is 1 player, 1 guardian, and 3 items to pick-up. """
 
 
 class Image:
+    """ Visual element to be displayed in a sprite / a cell of the structure. """
 
-	def __init__(self, path):
-		self.sprite_image = self.load_and_scale_image(path)
+    def __init__(self, path):
+        self.sprite_image = self.load_and_scale_image(path)
 
-	def load_and_scale_image(self, path):
+    def load_and_scale_image(self, path):
+        """ Adapt the image given in the path to be displayed in a sprite. """
+        new_image = pygame.image.load(path).convert_alpha()
+        new_image = pygame.transform.scale(new_image, (items.MapObject.WIDTH, items.MapObject.HEIGHT))
 
-		new_image = pygame.image.load(path).convert_alpha()
-		new_image = pygame.transform.scale(new_image, (MapObject.WIDTH, MapObject.HEIGHT))
-
-		return new_image
+        return new_image
 
 
 class Position:
+    """ Define a cell position in the structure (a list of lists which represents a grid) by its x and y indexes. """
 
-	def __init__(self, x, y):
-		self.x_index = x
-		self.y_index = y
+    def __init__(self, x, y):
+        self.x_index = x
+        self.y_index = y
 
-	def to_pixels(self, n):
-		return n * MapObject.WIDTH
+    def to_pixels(self, x, y):
+        """ Convert a pair of indexes coordinates (position in the structure)
+        into a pair of pixels coordinates (position on the screen). """
 
-
-class MapObject():
-
-	WIDTH = 32
-	HEIGHT = 32
-
-	def __init__(self, x, y, path, *groups):
-		super().__init__(*groups)
-		self.position = Position(x, y)
-		self.image = Image(path)
-
-	def update(self, screen):
-		screen.blit(self.image.sprite_image, (self.position.to_pixels(self.position.x_index), self.position.to_pixels(self.position.y_index)))
-		pygame.display.update()
+        return x * items.MapObject.WIDTH, y * items.MapObject.HEIGHT
 
 
-class Player(MapObject):
+class Map:
+    """ Display a map with all its sprites : player(s), guardian(s), floors, walls and randomly displayed items. """
 
-	def __init__(self, x, y, path, *groups):
-		super().__init__(x, y, path, *groups)
-		self.items_count = 0
+    NUMBER_OF_SPRITES_IN_WIDTH = 15
+    NUMBER_OF_SPRITES_IN_HEIGHT = 15
 
-	def calculation_of_the_new_position(self, key):
-		x = self.position.x_index
-		y = self.position.y_index
-		new_position = Position(x, y)
-		if key == pygame.K_LEFT:
-			new_position.x_index -= 1
-		elif key == pygame.K_RIGHT:
-			new_position.x_index += 1
-		elif key == pygame.K_UP:
-			new_position.y_index -= 1
-		elif key == pygame.K_DOWN:
-			new_position.y_index += 1
+    def __init__(self):
+        self.structure = []  # A list of lists which represents the structural grid of the sprites. Access via indexes.
+        self.screen = pygame.Surface
 
-		return new_position
+        self.player = None
+        self.guardian = None
+        self.floor = None
+        self.wall = None
 
-	def is_move_authorized(self, map, new_position):
-		if (new_position.x_index, new_position.y_index) not in map.walls:
-			return True
-		else:
-			return False
+        self.players = set()
+        self.guardians = set()
+        self.floors = set()
+        self.walls = set()
+        self.items = set()
 
-	def move(self, key, map):
-		tmp_position = self.calculation_of_the_new_position(key)
-		move_authorized = self.is_move_authorized(map, tmp_position)
-		if move_authorized:
-			map.screen.blit(
-				map.floor.image.sprite_image,
-				(self.position.to_pixels(self.position.x_index),
-				 self.position.to_pixels(self.position.y_index)))
-			self.position = tmp_position
-			self.update(map.screen)
+        self.number_of_objects = 3
 
-			if (tmp_position.x_index, tmp_position.y_index) in map.items:
-				self.items_count += 1
-				map.items.remove((tmp_position.x_index, tmp_position.y_index))
-				print('nombre d objets ramassés : ', self.items_count)
+    def initialize_structure(self):
+        """ Create the structure (list of lists) from the file 'map.txt'. """
+        file = open('map.txt', 'r', encoding='utf8')
+        structure = file.read().split("\n")
+        for i in range(len(structure)):
+            structure[i] = structure[i].split(',')
+        self.structure = structure
+        file.close()
 
-			elif (tmp_position.x_index, tmp_position.y_index) in map.guardians:
+    def initialize_screen(self):
+        """ Create the screen where the game will be displayed. """
+        self.screen = pygame.display.set_mode(
+            (self.NUMBER_OF_SPRITES_IN_WIDTH * items.MapObject.WIDTH,
+             self.NUMBER_OF_SPRITES_IN_HEIGHT * items.MapObject.HEIGHT))
+        pygame.display.set_caption("Help Mac Gyver to get out !")
+        pygame.key.set_repeat(500, 20)
 
-				if self.items_count == 3:
-					new_image = pygame.image.load('images/you_win.jpg').convert_alpha()
+    def initialize_sprites(self):
+        """ Add all the sprites - except pick-up items -  on the screen from the values stored in the structure.
+         For each sprite, the image of the map object is displayed on the screen and the indexes of its position
+         in the structure is added in the dedicated set. A floor background is also added for aesthetic purpose. """
+        self.player = items.Player(0, 0, 'images/mac_gyver.png')
+        self.guardian = items.MapObject(0, 0, 'images/guardian.png')
+        self.floor = items.MapObject(0, 0, 'images/floor.png')
+        self.wall = items.MapObject(0, 0, 'images/wall.png')
 
-				else:
-					new_image = pygame.image.load('images/you_die.jpg').convert_alpha()
+        for i in range(len(self.structure)):
+            for j in range(len(self.structure[i])):
+                if self.structure[i][j] == '1':
+                    self.wall.position.x_index = j
+                    self.wall.position.y_index = i
+                    self.wall.update(self.screen)
 
-				new_image = pygame.transform.scale(new_image, map.screen.get_size())
-				map.screen.blit(new_image, (0, 0))
-				pygame.display.update()
+                    self.walls.add((j, i,))
 
+                else:
+                    self.floor.position.x_index = j
+                    self.floor.position.y_index = i
+                    self.floor.update(self.screen)
 
-class Item(MapObject):
+                    if self.structure[i][j] == 'P':
+                        self.player.position.x_index = j
+                        self.player.position.y_index = i
+                        self.player.update(self.screen)
 
-	def __init__(self, x, y, path, *groups):
-		super().__init__(x, y, path, *groups)
+                        self.players.add((j, i,))
 
+                    elif self.structure[i][j] == 'G':
+                        self.guardian.position.x_index = j
+                        self.guardian.position.y_index = i
+                        self.guardian.update(self.screen)
 
-class Game:
+                        self.guardians.add((j, i,))
 
-	def __init__(self):
-		self.map = Map()
+                    else:
+                        self.floors.add((j, i,))
 
-	def start(self):
-		self.map.initialize_structure()
-		self.map.initialize_screen()
-		self.map.initialize_sprites()
+    def display_items_randomly(self):
+        """ Add randomly arranged pick-up items on the screen. """
+        list_of_floors = list(self.floors)
+        for k in range(self.number_of_objects):
+            random_number = random.randint(0, len(list_of_floors) - 1)
+            x, y = list_of_floors[random_number][0], list_of_floors[random_number][1]
+            item = items.MapObject(x, y, self.list_of_images_paths()[k])
+            self.items.add((x, y))
+            self.floors.discard((x, y))
+            list_of_floors.pop(random_number)
+            item.update(self.screen)
 
-		return self.map.screen, self.map.player
+    def list_of_images_paths(self):
+        """ Browse the file 'images/objects' and create a list with all the PNG images contained in it. """
+        list_of_images_paths = []
+        for file_name in os.listdir('images/objects'):
+            if file_name.endswith('.png'):
+                list_of_images_paths.append('images/objects/' + file_name)
+
+        return list_of_images_paths
 
 
 if __name__ == "__main__":
-	game = Game()
-	game.start()
-	pygame.time.delay(3000)
+    new_game = game.Game()
+    new_game.start()
+    pygame.time.delay(3000)
