@@ -10,16 +10,19 @@ import game.game
 import game.items
 
 """ This module creates the skeleton of the game and add visual elements on it.
-	The skeleton is a structure with a form of a grid in 2 dimensions.
-	This grid is materialized in a list of lists (map.structure).
-	On each cell of the grid (i.e. each sprite), an image is displayed. This image can be a player, a guardian, 
-	a wall, a floor or an item to pick-up.
-	This module allow multiple players, multiple guardians and multiple pick-up items.
-	By default, there is 1 player, 1 guardian, and 3 items to pick-up. """
+    The skeleton is a structure with a form of a grid in 2 dimensions.
+    This grid is materialized in a list of lists (map.structure).
+    On each cell of the grid (i.e. each sprite), an image is displayed.
+    This image can be a player, a guardian, a wall, a floor or an item to
+    pick-up.
+    This module allow multiple players, multiple guardians and multiple
+    pick-up items. By default, there is 1 player, 1 guardian, and 3 items
+    to pick-up. """
 
 
 class Image:
-    """ Visual element to be displayed in a sprite / a cell of the structure. """
+    """ Visual element to be displayed in a sprite / a cell of the
+        structure. """
 
     def __init__(self, path):
         self.sprite_image = self.load_and_scale_image(path)
@@ -27,13 +30,17 @@ class Image:
     def load_and_scale_image(self, path):
         """ Adapt the image given in the path to be displayed in a sprite. """
         new_image = pygame.image.load(path).convert_alpha()
-        new_image = pygame.transform.scale(new_image, (game.items.MapObject.WIDTH, game.items.MapObject.HEIGHT))
+        new_image = pygame.transform.scale(
+            new_image,
+            (game.items.MapObject.WIDTH,
+             game.items.MapObject.HEIGHT))
 
         return new_image
 
 
 class Position:
-    """ Define a cell position in the structure (a list of lists which represents a grid) by its x and y indexes. """
+    """ Define a cell position in the structure (a list of lists which
+        represents a grid) by its x and y indexes. """
 
     def __init__(self, x, y):
         self.x_index = x
@@ -47,13 +54,14 @@ class Position:
 
 
 class Map:
-    """ Display a map with all its sprites : player(s), guardian(s), floors, walls and randomly displayed items. """
+    """ Display a map with all its sprites : player(s), guardian(s), floors,
+        walls and randomly displayed items. """
 
     NUMBER_OF_SPRITES_IN_WIDTH = 15
     NUMBER_OF_SPRITES_IN_HEIGHT = 15
 
     def __init__(self):
-        self.structure = []  # A list of lists which represents the structural grid of the sprites. Access via indexes.
+        self.structure = []
         self.screen = pygame.Surface
 
         self.player = None
@@ -87,9 +95,12 @@ class Map:
         pygame.key.set_repeat(500, 20)
 
     def initialize_sprites(self):
-        """ Add all the sprites - except pick-up items -  on the screen from the values stored in the structure.
-         For each sprite, the image of the map object is displayed on the screen and the indexes of its position
-         in the structure is added in the dedicated set. A floor background is also added for aesthetic purpose. """
+        """ Add all the sprites - except pick-up items -  on the screen from the
+            values stored in the structure.
+            For each sprite, the image of the map object is displayed on the
+            screen and the indexes of its position in the structure is added
+            in the dedicated set. A floor background is also added for
+            aesthetic purpose. """
         self.player = game.items.Player(0, 0, 'images/mac_gyver.png')
         self.guardian = game.items.MapObject(0, 0, 'images/guardian.png')
         self.floor = game.items.MapObject(0, 0, 'images/floor.png')
@@ -131,7 +142,8 @@ class Map:
         list_of_floors = list(self.floors)
         for k in range(self.number_of_objects):
             random_number = random.randint(0, len(list_of_floors) - 1)
-            x, y = list_of_floors[random_number][0], list_of_floors[random_number][1]
+            x, y = (list_of_floors[random_number][0],
+                    list_of_floors[random_number][1])
             item = game.items.MapObject(x, y, self.list_of_images_paths()[k])
             self.items.add((x, y))
             self.floors.discard((x, y))
@@ -139,7 +151,8 @@ class Map:
             item.update(self.screen)
 
     def list_of_images_paths(self):
-        """ Browse the file 'images/objects' and create a list with all the PNG images contained in it. """
+        """ Browse the file 'images/objects' and create a list with all the PNG
+            images contained in it. """
         list_of_images_paths = []
         for file_name in os.listdir('images/objects'):
             if file_name.endswith('.png'):
