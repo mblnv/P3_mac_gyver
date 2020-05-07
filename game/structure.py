@@ -6,8 +6,8 @@ import random
 
 import pygame
 
-import game
-import items
+import game.game
+import game.items
 
 """ This module creates the skeleton of the game and add visual elements on it.
 	The skeleton is a structure with a form of a grid in 2 dimensions.
@@ -27,7 +27,7 @@ class Image:
     def load_and_scale_image(self, path):
         """ Adapt the image given in the path to be displayed in a sprite. """
         new_image = pygame.image.load(path).convert_alpha()
-        new_image = pygame.transform.scale(new_image, (items.MapObject.WIDTH, items.MapObject.HEIGHT))
+        new_image = pygame.transform.scale(new_image, (game.items.MapObject.WIDTH, game.items.MapObject.HEIGHT))
 
         return new_image
 
@@ -43,7 +43,7 @@ class Position:
         """ Convert a pair of indexes coordinates (position in the structure)
         into a pair of pixels coordinates (position on the screen). """
 
-        return x * items.MapObject.WIDTH, y * items.MapObject.HEIGHT
+        return x * game.items.MapObject.WIDTH, y * game.items.MapObject.HEIGHT
 
 
 class Map:
@@ -81,8 +81,8 @@ class Map:
     def initialize_screen(self):
         """ Create the screen where the game will be displayed. """
         self.screen = pygame.display.set_mode(
-            (self.NUMBER_OF_SPRITES_IN_WIDTH * items.MapObject.WIDTH,
-             self.NUMBER_OF_SPRITES_IN_HEIGHT * items.MapObject.HEIGHT))
+            (self.NUMBER_OF_SPRITES_IN_WIDTH * game.items.MapObject.WIDTH,
+             self.NUMBER_OF_SPRITES_IN_HEIGHT * game.items.MapObject.HEIGHT))
         pygame.display.set_caption("Help Mac Gyver to get out !")
         pygame.key.set_repeat(500, 20)
 
@@ -90,10 +90,10 @@ class Map:
         """ Add all the sprites - except pick-up items -  on the screen from the values stored in the structure.
          For each sprite, the image of the map object is displayed on the screen and the indexes of its position
          in the structure is added in the dedicated set. A floor background is also added for aesthetic purpose. """
-        self.player = items.Player(0, 0, 'images/mac_gyver.png')
-        self.guardian = items.MapObject(0, 0, 'images/guardian.png')
-        self.floor = items.MapObject(0, 0, 'images/floor.png')
-        self.wall = items.MapObject(0, 0, 'images/wall.png')
+        self.player = game.items.Player(0, 0, 'images/mac_gyver.png')
+        self.guardian = game.items.MapObject(0, 0, 'images/guardian.png')
+        self.floor = game.items.MapObject(0, 0, 'images/floor.png')
+        self.wall = game.items.MapObject(0, 0, 'images/wall.png')
 
         for i in range(len(self.structure)):
             for j in range(len(self.structure[i])):
@@ -132,7 +132,7 @@ class Map:
         for k in range(self.number_of_objects):
             random_number = random.randint(0, len(list_of_floors) - 1)
             x, y = list_of_floors[random_number][0], list_of_floors[random_number][1]
-            item = items.MapObject(x, y, self.list_of_images_paths()[k])
+            item = game.items.MapObject(x, y, self.list_of_images_paths()[k])
             self.items.add((x, y))
             self.floors.discard((x, y))
             list_of_floors.pop(random_number)
@@ -149,6 +149,6 @@ class Map:
 
 
 if __name__ == "__main__":
-    new_game = game.Game()
+    new_game = game.game.Game()
     new_game.start()
     pygame.time.delay(3000)

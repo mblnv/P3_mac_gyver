@@ -3,12 +3,12 @@
 
 import pygame
 
-import game
+import game.game
 
 
 def main():
 
-	new_game = game.Game()
+	new_game = game.game.Game()
 	new_game.start()
 
 	running = True

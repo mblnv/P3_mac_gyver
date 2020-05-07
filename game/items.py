@@ -3,7 +3,7 @@
 
 import pygame
 
-import structure
+import game.structure
 
 """ This module defines the types of objects which can be displayed on the map.
     At the minimum, an object can be defined by its position in the structure (with indexes) and its image. 
@@ -17,8 +17,8 @@ class MapObject:
     HEIGHT = 32
 
     def __init__(self, x, y, path):
-        self.position = structure.Position(x, y)
-        self.image = structure.Image(path)
+        self.position = game.structure.Position(x, y)
+        self.image = game.structure.Image(path)
 
     def update(self, screen):
         """ Display a map object on the screen. """
@@ -68,7 +68,7 @@ class Player(MapObject):
         in the structure. """
         x = self.position.x_index
         y = self.position.y_index
-        new_position = structure.Position(x, y)
+        new_position = game.structure.Position(x, y)
         if key == pygame.K_LEFT:
             new_position.x_index -= 1
         elif key == pygame.K_RIGHT:
@@ -83,8 +83,8 @@ class Player(MapObject):
     def is_move_authorized(self, map, new_position):
         """ Determine whether the move to the new position is possible. """
         if ((new_position.x_index, new_position.y_index) not in map.walls
-                and 0 <= new_position.x_index <= structure.Map.NUMBER_OF_SPRITES_IN_WIDTH
-                and 0 <= new_position.y_index <= structure.Map.NUMBER_OF_SPRITES_IN_HEIGHT
+                and 0 <= new_position.x_index <= game.structure.Map.NUMBER_OF_SPRITES_IN_WIDTH
+                and 0 <= new_position.y_index <= game.structure.Map.NUMBER_OF_SPRITES_IN_HEIGHT
                 and self.end_game is False):
             return True
         else:
