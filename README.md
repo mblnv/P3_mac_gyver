@@ -9,17 +9,18 @@ To escape, he will have to pick-up 3 objects with whom he will create a syringe 
 1. This program runs on __Python__.    
 To install it, see the official website :  www.python.org  
 
-2. You will also need __Git__ on your computer. See : https://git-scm.com/book/en/v2/Getting-Started-Installing-Git    
+2. You will also need __Git__ on your computer.  
+See : https://git-scm.com/book/en/v2/Getting-Started-Installing-Git    
     
 3. Before running the game installation, I recommend you to create a virtual environment with __venv__.    
     
 - Run your shell on your destination file.    
 - Create you virtual environment with this command :    
-`python3 -m venv name_of_your_virtual_environment` 
-*Example :* 
+`python3 -m venv name_of_your_virtual_environment`  
+*Example :*  
 `python3 -m venv venv`  
 - Activate your virtual environment with this command :    
-`source name_of_your_virtual_environment/bin/activate`  
+`source name_of_your_virtual_environment/bin/activate`    
 *Example :*  
 `source venv/bin/activate`  
   
@@ -28,13 +29,13 @@ To install it, see the official website :  www.python.org
 To download the project :  
 `git clone https://github.com/mblnv/P3_mac_gyver.git`
 
-Then move to the new file 'P3_mac_gyver'
+Then move to the new file 'P3_mac_gyver'  
 `cd P3_mac_gyver`
 
 And finally, to install the dependencies :  
-`python3 -m pip install -r requirements.txt`
-(On Mac OS X, you might encounter some issues and might need to install Pygame manually :
-`python3 -m pip install pygame==2.0.0.dev6`
+`python3 -m pip install -r requirements.txt`  
+(On Mac OS X, you might encounter some issues and might need to install Pygame manually :  
+`python3 -m pip install pygame==2.0.0.dev6`   
 For more, see the documentation : https://www.pygame.org/wiki/GettingStarted )
 
 ### Running  
@@ -45,9 +46,9 @@ To launch the game :
 ### Closing
 
 To quit your virtual environment :
-`deactivate name_of_your_virtual_environment`
-*Example :*
-`deactivate venv`
+`deactivate name_of_your_virtual_environment`   
+*Example :*  
+`deactivate venv`  
 
 ## About the game
 
